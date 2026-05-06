@@ -20,7 +20,22 @@ jobs:
       - name: Clone repository
         uses: actions/checkout@v2
 
+      - name: Setup Node.js (macOS legacy via x64 tarball)
+        if: runner.os == 'macOS' && (matrix.node == 12 || matrix.node == 14)
+        run: |
+          case "${{ matrix.node }}" in
+            12) NODE_VERSION="v12.22.12" ;;
+            14) NODE_VERSION="v14.21.3" ;;
+          esac
+          curl -fsSLO "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-darwin-x64.tar.gz"
+          sudo tar -xzf "node-${NODE_VERSION}-darwin-x64.tar.gz" -C /usr/local --strip-components=1
+          rm "node-${NODE_VERSION}-darwin-x64.tar.gz"
+          echo "/usr/local/bin" >> "$GITHUB_PATH"
+          /usr/local/bin/node --version
+          /usr/local/bin/npm --version
+
       - name: Setup Node.js
+        if: ${{ !(runner.os == 'macOS' && (matrix.node == 12 || matrix.node == 14)) }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
